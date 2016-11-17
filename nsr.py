@@ -1,5 +1,6 @@
 import os
 import hou
+import glob
 import ConfigParser as CP
 
 conf = CP.ConfigParser()
@@ -7,11 +8,11 @@ conf.read('toRender.cfg')
 HOUDINI_FOLDER = "E:\Videos\Houdini"
 
 
-def get_last_frame(project_directory, END_FRAME):
-    files = os.listdir(project_directory)
-    if not files:
-        return 1
-    frame_nums = sorted([int(file.split('.')[2]) for file in files])
+def get_last_frame(project_directory, END_FRAME, rop_node):
+    _ = glob.glob("{}\\*.{}.*.JPEG".format(project_directory, rop_node))
+    if not _:
+        return 1  # nothing was rendered yet
+    frame_nums = sorted([int(file.split('.')[2]) for file in _])
     for frame in frame_nums:
         if int(frame) >= END_FRAME:
             return None
@@ -48,6 +49,13 @@ def main():
         except CP.NoOptionError:
             OUT_EXTENSION = None  # Uses default defined in the ROP node, defined in func render
 
+        try:
+            ROP_NODES = [node.strip()
+                         for node in conf.get(project, 'rop_nodes').split(',')]
+        except CP.NoOptionError:
+            # Uses default defined in the ROP node, defined in func render
+            ROP_NODES = ['mantra1']
+
         RENDER_FOLDER = "{}\\{}\\render".format(HOUDINI_FOLDER, PROJECT_NAME)
 
         HIPFILE = "{}\\{}\\{}.{}".format(
@@ -55,14 +63,15 @@ def main():
 
         END_FRAME = int(conf.get(project, 'end_frame'))
 
-        START_FRAME = get_last_frame(RENDER_FOLDER, END_FRAME)
-
-        if START_FRAME:
-            for frame in range(START_FRAME, END_FRAME + 1):
-                render(HOUDINI_FOLDER, PROJECT_NAME,
-                       HIPFILE, frame, OUT_EXTENSION)
-        else:
-            print("Nothing to render in {}!".format(project))
+        for rop_node in ROP_NODES:
+            START_FRAME = get_last_frame(RENDER_FOLDER, END_FRAME, rop_node)
+            print(START_FRAME)
+            if START_FRAME:
+                for frame in range(START_FRAME, END_FRAME + 1):
+                    render(HOUDINI_FOLDER, PROJECT_NAME,
+                           HIPFILE, frame, OUT_EXTENSION, rop_node)
+            else:
+                print("Nothing to render in {}!".format(project))
 
 if __name__ == "__main__":
     main()
