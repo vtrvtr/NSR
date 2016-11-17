@@ -6,8 +6,11 @@ conf = CP.ConfigParser()
 conf.read('toRender.cfg')
 HOUDINI_FOLDER = "E:\Videos\Houdini"
 
+
 def get_last_frame(project_directory, END_FRAME):
     files = os.listdir(project_directory)
+    if not files:
+        return 1
     frame_nums = sorted([int(file.split('.')[2]) for file in files])
     for frame in frame_nums:
         if int(frame) >= END_FRAME:
@@ -15,17 +18,14 @@ def get_last_frame(project_directory, END_FRAME):
     return int(frame)
 
 
-# def output_path(HOUDINI_FOLDER, PROJECT_NAME, frame, operator_name, extension):
-#     path = "{}\\{}\\render\{}.{}.{}.{}".format(
-#         HOUDINI_FOLDER, PROJECT_NAME, PROJECT_NAME, operator_name, frame, extension)
-    # return path
-
-
 def render(HOUDINI_FOLDER, PROJECT_NAME, HIPFILE, frame, extension, rop_node="mantra1"):
     hou.hipFile.load(HIPFILE)
     render_node = hou.node("/out/{}".format(rop_node))
     operator_name = render_node.name()
     render_node.parm('trange').set(1)
+
+    if extension is None:
+        extension = render_node.parm("vm_device").eval()
 
     path = "{}\\{}\\render\{}.{}.{}.{}".format(
         HOUDINI_FOLDER, PROJECT_NAME, PROJECT_NAME, operator_name, frame, extension)
@@ -46,7 +46,7 @@ def main():
         try:
             OUT_EXTENSION = conf.get(project, 'out_extension')
         except CP.NoOptionError:
-            OUT_EXTENSION = 'exr'
+            OUT_EXTENSION = None  # Uses default defined in the ROP node, defined in func render
 
         RENDER_FOLDER = "{}\\{}\\render".format(HOUDINI_FOLDER, PROJECT_NAME)
 
@@ -59,7 +59,8 @@ def main():
 
         if START_FRAME:
             for frame in range(START_FRAME, END_FRAME + 1):
-                render(HOUDINI_FOLDER, PROJECT_NAME, HIPFILE, frame, OUT_EXTENSION)
+                render(HOUDINI_FOLDER, PROJECT_NAME,
+                       HIPFILE, frame, OUT_EXTENSION)
         else:
             print("Nothing to render in {}!".format(project))
 
