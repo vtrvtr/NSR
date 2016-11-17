@@ -15,19 +15,20 @@ def get_last_frame(project_directory, END_FRAME):
     return int(frame)
 
 
-def output_path(HOUDINI_FOLDER, PROJECT_NAME, frame, operator_name, extension):
-    path = "{}\\{}\\render\{}.{}.{}.{}".format(
-        HOUDINI_FOLDER, PROJECT_NAME, PROJECT_NAME, operator_name, frame, extension)
-    return path
+# def output_path(HOUDINI_FOLDER, PROJECT_NAME, frame, operator_name, extension):
+#     path = "{}\\{}\\render\{}.{}.{}.{}".format(
+#         HOUDINI_FOLDER, PROJECT_NAME, PROJECT_NAME, operator_name, frame, extension)
+    # return path
 
 
-def render(HIPFILE, frame, extension, rop_node="mantra1"):
+def render(HOUDINI_FOLDER, PROJECT_NAME, HIPFILE, frame, extension, rop_node="mantra1"):
     hou.hipFile.load(HIPFILE)
     render_node = hou.node("/out/{}".format(rop_node))
     operator_name = render_node.name()
     render_node.parm('trange').set(1)
-    path = output_path(HOUDINI_FOLDER, PROJECT_NAME,
-                       frame, operator_name, extension)
+
+    path = "{}\\{}\\render\{}.{}.{}.{}".format(
+        HOUDINI_FOLDER, PROJECT_NAME, PROJECT_NAME, operator_name, frame, extension)
 
     render_node.render(frame_range=(frame, frame),
                        output_file=path, verbose=True, output_progress=True)
@@ -52,13 +53,13 @@ def main():
         HIPFILE = "{}\\{}\\{}.{}".format(
             HOUDINI_FOLDER, PROJECT_NAME, PROJECT_NAME, HIP_EXTENSION)
 
-        END_FRAME = 2
+        END_FRAME = int(conf.get(project, 'end_frame'))
 
         START_FRAME = get_last_frame(RENDER_FOLDER, END_FRAME)
 
         if START_FRAME:
             for frame in range(START_FRAME, END_FRAME + 1):
-                render(HIPFILE, frame, OUT_EXTENSION)
+                render(HOUDINI_FOLDER, PROJECT_NAME, HIPFILE, frame, OUT_EXTENSION)
         else:
             print("Nothing to render in {}!".format(project))
 
