@@ -3,13 +3,26 @@ import hou
 import glob
 import ConfigParser as CP
 
+'''
+Takes need to be set inside Houdini
+
+output format must be:
+    PROJECT_NAME.ROP_NODE_NAME.FRAME.EXTENSION
+
+
+
+
+'''
+
+
+
 conf = CP.ConfigParser()
 conf.read('toRender.cfg')
 HOUDINI_FOLDER = "E:\Videos\Houdini"
 
 
 def get_last_frame(project_directory, END_FRAME, rop_node):
-    _ = glob.glob("{}\\*.{}.*.JPEG".format(project_directory, rop_node))
+    _ = glob.glob("{}\\*.{}.*.*".format(project_directory, rop_node))
     if not _:
         return 1  # nothing was rendered yet
     frame_nums = sorted([int(file.split('.')[2]) for file in _])
