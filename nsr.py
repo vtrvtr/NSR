@@ -1,3 +1,5 @@
+#!V:\Programs\Side Effects Software\Houdini 15.5.607\bin\hython.exe
+
 import os
 import hou
 import glob
@@ -9,11 +11,11 @@ Takes need to be set inside Houdini
 output format must be:
     PROJECT_NAME.ROP_NODE_NAME.FRAME.EXTENSION
 
+READ CACHE FILES MUST HAVE FULL PATH
 
 
 
 '''
-
 
 
 conf = CP.ConfigParser()
@@ -33,7 +35,10 @@ def get_last_frame(project_directory, END_FRAME, rop_node):
 
 
 def render(HOUDINI_FOLDER, PROJECT_NAME, HIPFILE, frame, extension, rop_node="mantra1"):
-    hou.hipFile.load(HIPFILE)
+    try:
+        hou.hipFile.load(HIPFILE)
+    except hou.OperationFailed as e:
+        return "Not possible to load file {} - {}".format(HIPFILE, e)
     render_node = hou.node("/out/{}".format(rop_node))
     operator_name = render_node.name()
     render_node.parm('trange').set(1)
@@ -45,7 +50,7 @@ def render(HOUDINI_FOLDER, PROJECT_NAME, HIPFILE, frame, extension, rop_node="ma
         HOUDINI_FOLDER, PROJECT_NAME, PROJECT_NAME, operator_name, frame, extension)
 
     render_node.render(frame_range=(frame, frame),
-                       output_file=path, verbose=True, output_progress=True)
+                       output_file=path, verbose=True, output_progress=False)
 
 
 def main():
@@ -78,13 +83,13 @@ def main():
 
         for rop_node in ROP_NODES:
             START_FRAME = get_last_frame(RENDER_FOLDER, END_FRAME, rop_node)
-            print(START_FRAME)
             if START_FRAME:
                 for frame in range(START_FRAME, END_FRAME + 1):
                     render(HOUDINI_FOLDER, PROJECT_NAME,
                            HIPFILE, frame, OUT_EXTENSION, rop_node)
+
             else:
-                print("Nothing to render in {}!".format(project))
+                print("Nothing to render in {} from {}!".format(rop_node, project))
 
 if __name__ == "__main__":
     main()
