@@ -6,16 +6,13 @@ import glob
 import ConfigParser as CP
 
 '''
-Takes need to be set inside Houdini
+Folders need to be created before rendering
 
 
 output_format:
     PROJECT_NAME.ROP_NODE_NAME.FRAME.EXTENSION
 
 Cache files must have full path
-
-
-
 
 '''
 
