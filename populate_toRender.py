@@ -2,7 +2,6 @@ import hou
 import ConfigParser
 
 
-
 def get_rop_nodes_list(out_node):
     rop_nodes = []
     cache_nodes = []
@@ -49,37 +48,50 @@ def get_output_extension(out_node):
 
 
 def write(config_file, out, config_handle):
+    conf_file = open(config_file, 'a+')
     HIPNAME = hou.expandString("$HIPNAME").split("\\")[-1]
     rop_nodes = get_rop_nodes_list(out)[1]
     cache_nodes = get_rop_nodes_list(out)[0]
     config_handle.add_section("{}".format(HIPNAME))
     config_handle.set('{}'.format(HIPNAME), 'project_name', HIPNAME)
     config_handle.set('{}'.format(HIPNAME), 'end_frame', get_max_frame(out))
-    config_handle.set('{}'.format(HIPNAME), 'rop_nodes', get_rop_nodes_list(out)[1])
+    config_handle.set('{}'.format(HIPNAME), 'rop_nodes',
+                      get_rop_nodes_list(out)[1])
     config_handle.set('{}'.format(HIPNAME), 'rop_extension',
-               get_output_extension(out)[1])
+                      get_output_extension(out)[1])
     if cache_nodes:
         config_handle.set('{}'.format(HIPNAME), 'cache_nodes', cache_nodes)
         config_handle.set('{}'.format(HIPNAME), 'cache_extension',
-                   get_output_extension(out)[0])
-    config_handle.write(config_file)
+                          get_output_extension(out)[0])
+    config_handle.write(config_file.close)
     config_file.close()
 
 
+def check_projects(config_handle, config_file, project_name):
+    config_handle.read(config_file)
+    for project in config_handle.sections():
+        if project_name != project:
+            return True
+    return False
+
+
 def main():
-    f = "E:\Videos\Houdini\\abstract_will\\abstract_will.hip"
-    w = "E:\Code\NSR\\toRender.cfg"
-    conf = open(w, 'a+')
+    HIPFILE = "E:\Videos\Houdini\\powerup\\powerup.hip"
+    config_file = "E:\Code\NSR\\toRender.cfg"
     Config = ConfigParser.ConfigParser()
 
     try:
-        hou.hipFile.load(f)
+        hou.hipFile.load(HIPFILE)
     except hou.LoadWarning, e:
         print e
 
     out = hou.node('/out')
+    HIPNAME = hou.expandString("$HIPNAME").split("\\")[-1]
 
-    write(conf, out, Config)
+    if not check_projects(Config, config_file, HIPNAME):
+        write(conf_file, out, Config)
+    else:
+        print("Project {} already in file".format(HIPNAME))
 
 if __name__ == "__main__":
     main()
