@@ -29,6 +29,8 @@ def get_max_frame(out_node):
 
 
 def get_output_extension(out_node):
+    cache_extension = None
+    rop_extension = None
     for child in out_node.children():
         if "CONTROL" not in child.name().upper():
             try:
@@ -47,14 +49,14 @@ def get_output_extension(out_node):
     return cache_extension, rop_extension
 
 
-def write(config_file, out, config_handle):
-    config_file = open(config_file, 'a+')
+def write(config_file, out):
+    config_handle = ConfigParser.RawConfigParser()
     HIPNAME = hou.expandString("$HIPNAME").split("\\")[-1]
-    rop_nodes = get_rop_nodes_list(out)[1]
     cache_nodes = get_rop_nodes_list(out)[0]
     config_handle.add_section("{}".format(HIPNAME))
     config_handle.set('{}'.format(HIPNAME), 'project_name', HIPNAME)
-    config_handle.set('{}'.format(HIPNAME), 'end_frame', get_max_frame(out))
+    config_handle.set('{}'.format(HIPNAME),
+                      'end_frame', get_max_frame(out))
     config_handle.set('{}'.format(HIPNAME), 'rop_nodes',
                       get_rop_nodes_list(out)[1])
     config_handle.set('{}'.format(HIPNAME), 'rop_extension',
@@ -63,35 +65,33 @@ def write(config_file, out, config_handle):
         config_handle.set('{}'.format(HIPNAME), 'cache_nodes', cache_nodes)
         config_handle.set('{}'.format(HIPNAME), 'cache_extension',
                           get_output_extension(out)[0])
-    config_handle.write(config_file)
-    config_file.close()
+    with open(config_file, 'a') as configfile:
+        config_handle.write(configfile)
 
 
-def check_projects(config_handle, config_file, project_name):
+def check_projects(config_file, project_name):
+    config_handle = ConfigParser.RawConfigParser()
     config_handle.read(config_file)
-    for project in config_handle.sections():
-        if project_name != project:
-            return True
-    return False
+    return project_name in config_handle.sections()
 
 
 def main():
-    HIPFILE = hou.expandString("$HIPFILE")
-    config_file = "E:\Code\NSR\\toRender.cfg"
-    Config = ConfigParser.ConfigParser()
+    HIPFILE = "E:\Videos\Houdini\\generic_destruction\\generic_destruction.hip"
+    config_file = "E:\\Code\\NSR\\toRender.cfg"
 
     try:
         hou.hipFile.load(HIPFILE)
-    except hou.LoadWarning, e:
-        print e
-
+    except hou.LoadWarning as e:
+        print(e)
     out = hou.node('/out')
-    HIPNAME = hou.expandString("$HIPNAME")
 
-    if not check_projects(Config, config_file, HIPNAME):
-        write(config_file, out, Config)
+    HIPNAME = hou.expandString("$HIPNAME").split("\\")[-1]
+
+    if check_projects(config_file, HIPNAME):
+        print("Configuration for {} already exists in toRender".format(HIPNAME))
     else:
-        print("Project {} already in file".format(HIPNAME))
+        write(config_file, out)
+
 
 if __name__ == "__main__":
     main()
