@@ -34,7 +34,7 @@ def get_last_frame(project_directory, END_FRAME, rop_node):
     return int(frame)
 
 
-def render(PROJECT_NAME, RENDER_FOLDER, frame, extension, rop_node="mantra1"):
+def render(PROJECT_NAME, RENDER_FOLDER, frame, extension, rop_node):
     render_node = hou.node("/out/{}".format(rop_node))
     operator_name = render_node.name()
     # Defines main take so it can set the frame range
@@ -79,7 +79,7 @@ def main():
                          for node in conf.get(project, 'rop_nodes').split(',')]
         except CP.NoOptionError:
             # Uses default defined in the ROP node, defined in func render
-            ROP_NODES = ['mantra1']
+            ROP_NODES = []
 
         try:
             CACHE_NODES = [node.strip()
@@ -90,7 +90,6 @@ def main():
 
         HIPFILE = "{}\\{}\\{}.{}".format(
             HOUDINI_FOLDER, PROJECT_NAME, PROJECT_NAME, HIP_EXTENSION)
-
 
         try:
             hou.hipFile.load(HIPFILE)
