@@ -34,11 +34,7 @@ def get_last_frame(project_directory, END_FRAME, rop_node):
     return int(frame)
 
 
-def render(PROJECT_NAME, RENDER_FOLDER, HIPFILE, frame, extension, rop_node="mantra1"):
-    try:
-        hou.hipFile.load(HIPFILE)
-    except hou.OperationFailed as e:
-        return "Not possible to load file {} - {}".format(HIPFILE, e)
+def render(PROJECT_NAME, RENDER_FOLDER, frame, extension, rop_node="mantra1"):
     render_node = hou.node("/out/{}".format(rop_node))
     operator_name = render_node.name()
     # Defines main take so it can set the frame range
@@ -91,8 +87,15 @@ def main():
         except CP.NoOptionError:
             CACHE_NODES = []
 
+
         HIPFILE = "{}\\{}\\{}.{}".format(
             HOUDINI_FOLDER, PROJECT_NAME, PROJECT_NAME, HIP_EXTENSION)
+
+
+        try:
+            hou.hipFile.load(HIPFILE)
+        except hou.OperationFailed as e:
+            return "Not possible to load file {} - {}".format(HIPFILE, e)
 
         RENDER_FOLDER = "{}\\{}\\render".format(HOUDINI_FOLDER, PROJECT_NAME)
 
@@ -104,7 +107,7 @@ def main():
             START_FRAME = get_last_frame(CCACHE, END_FRAME, cache_node)
             if START_FRAME:
                 for frame in range(START_FRAME, END_FRAME + 1):
-                    render(PROJECT_NAME, CCACHE, HIPFILE,
+                    render(PROJECT_NAME, CCACHE,
                            frame, CACHE_EXTENSION, cache_node)
             else:
                 print("Nothing to render in {} from {}!".format(
@@ -114,7 +117,7 @@ def main():
             START_FRAME = get_last_frame(RENDER_FOLDER, END_FRAME, rop_node)
             if START_FRAME:
                 for frame in range(START_FRAME, END_FRAME + 1):
-                    render(PROJECT_NAME, RENDER_FOLDER, HIPFILE, frame,
+                    render(PROJECT_NAME, RENDER_FOLDER, frame,
                            OUT_EXTENSION, rop_node)
                     pass
             else:
