@@ -48,6 +48,13 @@ def render(PROJECT_NAME, RENDER_FOLDER, frame, extension, rop_node):
     path = "{}\\{}.{}.{}.{}".format(
         RENDER_FOLDER, PROJECT_NAME, operator_name, frame, extension)
 
+    if os.path.isdir(RENDER_FOLDER) is False:
+        try:
+            os.makedirs(RENDER_FOLDER)
+        except OSError as e:
+            print("Error creating directory: {}".format(e))
+            pass
+
     render_node.render(frame_range=(frame, frame),
                        output_file=path, verbose=True, output_progress=False)
 
@@ -86,7 +93,6 @@ def main():
                            for node in conf.get(project, 'cache_nodes').split(',')]
         except CP.NoOptionError:
             CACHE_NODES = []
-
 
         HIPFILE = "{}\\{}\\{}.{}".format(
             HOUDINI_FOLDER, PROJECT_NAME, PROJECT_NAME, HIP_EXTENSION)
