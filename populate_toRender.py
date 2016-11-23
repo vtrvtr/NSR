@@ -48,7 +48,7 @@ def get_output_extension(out_node):
 
 
 def write(config_file, out, config_handle):
-    conf_file = open(config_file, 'a+')
+    config_file = open(config_file, 'a+')
     HIPNAME = hou.expandString("$HIPNAME").split("\\")[-1]
     rop_nodes = get_rop_nodes_list(out)[1]
     cache_nodes = get_rop_nodes_list(out)[0]
@@ -63,7 +63,7 @@ def write(config_file, out, config_handle):
         config_handle.set('{}'.format(HIPNAME), 'cache_nodes', cache_nodes)
         config_handle.set('{}'.format(HIPNAME), 'cache_extension',
                           get_output_extension(out)[0])
-    config_handle.write(config_file.close)
+    config_handle.write(config_file)
     config_file.close()
 
 
@@ -76,7 +76,7 @@ def check_projects(config_handle, config_file, project_name):
 
 
 def main():
-    HIPFILE = "E:\Videos\Houdini\\powerup\\powerup.hip"
+    HIPFILE = hou.expandString("$HIPFILE")
     config_file = "E:\Code\NSR\\toRender.cfg"
     Config = ConfigParser.ConfigParser()
 
@@ -86,10 +86,10 @@ def main():
         print e
 
     out = hou.node('/out')
-    HIPNAME = hou.expandString("$HIPNAME").split("\\")[-1]
+    HIPNAME = hou.expandString("$HIPNAME")
 
     if not check_projects(Config, config_file, HIPNAME):
-        write(conf_file, out, Config)
+        write(config_file, out, Config)
     else:
         print("Project {} already in file".format(HIPNAME))
 
