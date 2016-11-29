@@ -6,8 +6,6 @@ import glob
 import ConfigParser as CP
 
 '''
-Folders need to be created before rendering
-
 
 output_format:
     PROJECT_NAME.ROP_NODE_NAME.FRAME.EXTENSION
@@ -15,8 +13,6 @@ output_format:
 Cache files must have full path
 
 '''
-
-
 conf = CP.ConfigParser()
 conf.read('toRender.cfg')
 HOUDINI_FOLDER = "E:\Videos\Houdini"
@@ -27,7 +23,12 @@ def get_last_frame(project_directory, END_FRAME, rop_node):
     _ = glob.glob("{}\\*.{}.*".format(project_directory, rop_node))
     if not _:
         return 1  # nothing was rendered yet
-    frame_nums = sorted([int(file.split('.')[2]) for file in _])
+    try:
+        frame_nums = sorted([int(file.split('.')[2]) for file in _])
+    except ValueError as e:
+        print("Getting last frame in {} failed with msg: {}".format(rop_node, e))
+        return 0
+
     for frame in frame_nums:
         if int(frame) >= END_FRAME:
             return None
@@ -53,7 +54,7 @@ def render(PROJECT_NAME, RENDER_FOLDER, frame, extension, rop_node):
             os.makedirs(RENDER_FOLDER)
         except OSError as e:
             print("Error creating directory: {}".format(e))
-            pass
+            return
 
     render_node.render(frame_range=(frame, frame),
                        output_file=path, verbose=True, output_progress=False)
@@ -72,7 +73,7 @@ def main():
             HIP_EXTENSION = 'hip'
 
         try:
-            OUT_EXTENSION = conf.get(project, 'out_extension')
+            OUT_EXTENSION = conf.get(project, 'rop_extension')
         except CP.NoOptionError:
             OUT_EXTENSION = None  # Uses default defined in the ROP node, defined in func render
 
