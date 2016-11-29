@@ -8,7 +8,7 @@ def get_rop_nodes_list(out_node):
     for child in out_node.children():
         if "CACHE" in child.name().upper():
             cache_nodes.append(child.name())
-        elif any(word in child.name().lower() for word in ["control", "preview"]):
+        elif any(word in child.name().lower() for word in ["control", "preview", "single"]):
             pass
         else:
             rop_nodes.append(child.name())
