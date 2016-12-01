@@ -110,7 +110,7 @@ def main():
         for cache_node in CACHE_NODES:
             CCACHE = "{}\\{}\\{}".format(
                 CHOUDINI_FOLDER, PROJECT_NAME, cache_node)
-            START_FRAME = get_last_frame(CCACHE, END_FRAME, cache_node)
+            START_FRAME = 1
             if START_FRAME:
                 for frame in range(START_FRAME, END_FRAME + 1):
                     render(PROJECT_NAME, CCACHE,
