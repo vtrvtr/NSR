@@ -79,6 +79,8 @@ def main():
 
         try:
             CACHE_EXTENSION = conf.get(project, 'cache_extension')
+            if CACHE_EXTENSION == "sc"
+                CACHE_EXTENSION = "bgeo.sc"
         except CP.NoOptionError:
             CACHE_EXTENSION = 'bgeo.sc'
 
