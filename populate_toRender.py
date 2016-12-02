@@ -6,10 +6,13 @@ def get_rop_nodes_list(out_node):
     rop_nodes = []
     cache_nodes = []
     for child in out_node.children():
-        if "CACHE" in child.name().upper():
-            cache_nodes.append(child.name())
-        elif any(word in child.name().lower() for word in ["control", "preview"]):
+        # node is set to current frame, so we skip it
+        if child.parm("trange").eval() == 0:
             pass
+        elif any(word in child.name().lower() for word in ["control", "preview", "single"]):
+            pass
+        elif "CACHE" in child.name().upper():
+            cache_nodes.append(child.name())
         else:
             rop_nodes.append(child.name())
     cache_nodes = str(cache_nodes).strip("[]").translate(None, "'")
@@ -26,6 +29,14 @@ def get_max_frame(out_node):
         except AttributeError:
             pass
     return int(max(max_frames))
+
+
+def delete_section(file, section):
+    config_handle = ConfigParser.RawConfigParser()
+    config_handle.read(file)
+    config_handle.remove_section(section)
+    with open(file, "w") as f:
+        config_handle.write(f)
 
 
 def get_output_extension(out_node):
@@ -76,7 +87,8 @@ def check_projects(config_file, project_name):
 
 
 def main():
-    HIPFILE = "E:\Videos\Houdini\\generic_destruction\\generic_destruction.hip"
+    project = "powerup"
+    HIPFILE = "E:\Videos\Houdini\\{}\\{}.hip".format(project, project)
     config_file = "E:\\Code\\NSR\\toRender.cfg"
 
     try:
@@ -88,7 +100,10 @@ def main():
     HIPNAME = hou.expandString("$HIPNAME").split("\\")[-1]
 
     if check_projects(config_file, HIPNAME):
-        print("Configuration for {} already exists in toRender".format(HIPNAME))
+        print("Configuration for {} already exists in toRender, replacing it...".format(
+            HIPNAME))
+        delete_section(config_file, HIPNAME)
+        write(config_file, out)
     else:
         write(config_file, out)
 
