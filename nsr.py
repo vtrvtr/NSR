@@ -79,21 +79,19 @@ def main():
 
         try:
             CACHE_EXTENSION = conf.get(project, 'cache_extension')
-            if CACHE_EXTENSION == "sc"
+            if CACHE_EXTENSION == "sc":
                 CACHE_EXTENSION = "bgeo.sc"
         except CP.NoOptionError:
             CACHE_EXTENSION = 'bgeo.sc'
 
         try:
-            ROP_NODES = [node.strip()
-                         for node in conf.get(project, 'rop_nodes').split(',')]
+            ROP_NODES = eval(conf.get(project, 'rop_nodes'))
         except CP.NoOptionError:
             # Uses default defined in the ROP node, defined in func render
             ROP_NODES = []
 
         try:
-            CACHE_NODES = [node.strip()
-                           for node in conf.get(project, 'cache_nodes').split(',')]
+            CACHE_NODES = eval(conf.get(project, 'cache_nodes'))
         except CP.NoOptionError:
             CACHE_NODES = []
 
@@ -107,28 +105,29 @@ def main():
 
         RENDER_FOLDER = "{}\\{}\\render".format(HOUDINI_FOLDER, PROJECT_NAME)
 
-        END_FRAME = int(conf.get(project, 'end_frame'))
 
         for cache_node in CACHE_NODES:
+            END_FRAME = int(cache_node[1])
             CCACHE = "{}\\{}\\{}".format(
-                CHOUDINI_FOLDER, PROJECT_NAME, cache_node)
-            START_FRAME = get_last_frame(CCACHE, END_FRAME, cache_node)
+                CHOUDINI_FOLDER, PROJECT_NAME, cache_node[0])
+            START_FRAME = get_last_frame(CCACHE, END_FRAME, cache_node[0])
             if START_FRAME != END_FRAME and START_FRAME is not None:
                 START_FRAME = 1
             if START_FRAME:
                 for frame in range(START_FRAME, END_FRAME + 1):
                     render(PROJECT_NAME, CCACHE,
-                           frame, CACHE_EXTENSION, cache_node)
+                           frame, CACHE_EXTENSION, cache_node[0])
             else:
                 print("Nothing to render in {} from {}!".format(
                     cache_node, project))
 
         for rop_node in ROP_NODES:
-            START_FRAME = get_last_frame(RENDER_FOLDER, END_FRAME, rop_node)
+            END_FRAME = int(rop_node[1])
+            START_FRAME = get_last_frame(RENDER_FOLDER, END_FRAME, rop_node[0])
             if START_FRAME:
                 for frame in range(START_FRAME, END_FRAME + 1):
                     render(PROJECT_NAME, RENDER_FOLDER, frame,
-                           OUT_EXTENSION, rop_node)
+                           OUT_EXTENSION, rop_node[0])
                     pass
             else:
                 print("Nothing to render in {} from {}!".format(rop_node, project))
